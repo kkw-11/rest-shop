@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: shop
+  jpa:
+    properties:
+      hibernate:
+        #        show_sql: true
+        format_sql: true
+        default_batch_fetch_size: 100
+
+logging:
+  level:
+    org.springframework: info
+    org.hibernate.SQL: debug        # SQL ?? ??
+    org.hibernate.orm.jdbc.bind: trace # ??? ? ??
+
+springdoc:
+  api-docs:
+    enabled: false  # ????? ????
+  swagger-ui:
+    enabled: false  # ????? ????
+
+# ?? ??? ??? ??
+itemImgLocation: "/Users/kim/myroot/shop/item/"
+
+# ??? URL ?? ?? ??, ???? ???? ?? ?? ??
+uploadPath: "file:////Users/kim/myroot/shop/"
