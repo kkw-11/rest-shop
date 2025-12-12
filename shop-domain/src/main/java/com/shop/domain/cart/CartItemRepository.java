@@ -1,6 +1,5 @@
-package com.shop.rest.commerce.repository;
+package com.shop.domain.cart;
 
-import com.shop.rest.commerce.entity.CartItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 
