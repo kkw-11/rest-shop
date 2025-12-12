@@ -1,6 +1,6 @@
-package com.shop.rest.commerce.dto;
+package com.shop.api.auth.dto;
 
-import com.shop.rest.commerce.entity.Member;
+import com.shop.domain.member.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class MemberResponse {
 
     // Entity -> DTO 변환
     public static MemberResponse from(Member member) {
-        return MemberResponse.builder()
+        return builder()
                 .id(member.getId())
                 .email(member.getEmail())
                 .name(member.getName())
