@@ -1,10 +1,7 @@
-package com.shop.rest;
+package com.shop.domain.item;
 
-import com.shop.rest.commerce.constant.ItemSellStatus;
-import com.shop.rest.commerce.entity.Item;
-import com.shop.rest.commerce.repository.ItemRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import com.shop.api.ShopApiApplication;
+import com.shop.common.constant.ItemSellStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +14,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = ShopApiApplication.class)
 @Transactional
 @ActiveProfiles("test")
 class ItemRepositoryTest {
-
-    @PersistenceContext
-    private EntityManager em;
 
     @Autowired
     private ItemRepository itemRepository;
