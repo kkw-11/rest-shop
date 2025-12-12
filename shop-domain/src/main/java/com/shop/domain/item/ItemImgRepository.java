@@ -1,6 +1,5 @@
-package com.shop.rest.commerce.repository;
+package com.shop.domain.item;
 
-import com.shop.rest.commerce.entity.ItemImg;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
