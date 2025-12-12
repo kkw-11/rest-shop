@@ -1,6 +1,8 @@
 package com.shop.rest.commerce.service;
 
 import com.shop.rest.commerce.entity.Member;
+import com.shop.rest.commerce.exception.CustomException;
+import com.shop.rest.commerce.exception.ErrorCode;
 import com.shop.rest.commerce.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,20 +25,27 @@ public class MemberService implements UserDetailsService {
         return memberRepository.save(member);
     }
 
-    private void validateDuplicateMember(Member member){
-        Member findMember = memberRepository.findByEmail(member.getEmail());
-        if(findMember != null){
-            throw new IllegalStateException("이미 가입된 회원입니다.");
+    private void validateDuplicateMember(Member member) {
+        if (memberRepository.existsByEmail(member.getEmail())) {
+            throw new CustomException(ErrorCode.DUPLICATE_EMAIL);
         }
+    }
+
+    public Member findById(Long id) {
+        return memberRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    public Member findByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Member member = memberRepository.findByEmail(email);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        if(member == null) {
-            throw new UsernameNotFoundException("해당 사용자를 찾을 수 없습니다: " + email);
-        }
 
         log.info("로그인 사용자: {}", email);
 
