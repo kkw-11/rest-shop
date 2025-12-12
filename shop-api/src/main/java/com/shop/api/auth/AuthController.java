@@ -1,18 +1,16 @@
-package com.shop.rest.commerce.controller;
+package com.shop.api.auth;
 
-import com.shop.rest.commerce.constant.ResponseMessage;
-import com.shop.rest.commerce.dto.ApiResponse;
-import com.shop.rest.commerce.dto.MemberResponse;
-import com.shop.rest.commerce.entity.Member;
-import com.shop.rest.commerce.service.MemberService;
+import com.shop.api.auth.dto.MemberResponse;
+import com.shop.common.constant.ResponseMessage;
+import com.shop.common.dto.ApiResponse;
+import com.shop.core.member.MemberService;
+import com.shop.domain.member.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
