@@ -1,7 +1,7 @@
-package com.shop.rest.commerce.dto;
+package com.shop.common.dto;
 
-import com.shop.rest.commerce.constant.ResponseMessage;
-import com.shop.rest.commerce.exception.ErrorCode;
+import com.shop.common.constant.ResponseMessage;
+import com.shop.common.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
