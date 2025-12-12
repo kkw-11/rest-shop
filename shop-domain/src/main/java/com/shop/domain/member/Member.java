@@ -1,6 +1,7 @@
-package com.shop.rest.commerce.entity;
+package com.shop.domain.member;
 
-import com.shop.rest.commerce.constant.Role;
+import com.shop.common.constant.Role;
+import com.shop.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
