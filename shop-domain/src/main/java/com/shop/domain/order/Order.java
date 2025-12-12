@@ -1,6 +1,8 @@
-package com.shop.rest.commerce.entity;
+package com.shop.domain.order;
 
-import com.shop.rest.commerce.constant.OrderStatus;
+import com.shop.common.constant.OrderStatus;
+import com.shop.domain.common.BaseEntity;
+import com.shop.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
