@@ -1,5 +1,6 @@
 package com.shop.rest.commerce.dto;
 
+import com.shop.rest.commerce.constant.ResponseMessage;
 import com.shop.rest.commerce.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class ApiResponse<T> {
 
     // 성공 응답
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, "요청이 성공했습니다.", null, data);
+        return new ApiResponse<>(true, ResponseMessage.SUCCESS_MESSAGE.getMessage(), null, data);
     }
 
     public static <T> ApiResponse<T> success(String message, T data) {
