@@ -1,1 +1,7 @@
-rootProject.name = 'rest-shop'
+rootProject.name = 'shop'
+
+include 'shop-common'
+include 'shop-domain'
+include 'shop-core'
+include 'shop-api'
+include 'shop-admin-api'
