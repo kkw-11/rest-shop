@@ -1,5 +1,7 @@
-package com.shop.rest.commerce.entity;
+package com.shop.domain.cart;
 
+import com.shop.domain.common.BaseEntity;
+import com.shop.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
