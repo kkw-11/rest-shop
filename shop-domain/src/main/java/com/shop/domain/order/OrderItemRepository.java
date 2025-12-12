@@ -1,6 +1,5 @@
-package com.shop.rest.commerce.repository;
+package com.shop.domain.order;
 
-import com.shop.rest.commerce.entity.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
