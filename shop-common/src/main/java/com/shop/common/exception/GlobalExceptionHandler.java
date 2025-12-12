@@ -1,6 +1,6 @@
-package com.shop.rest.commerce.exception;
+package com.shop.common.exception;
 
-import com.shop.rest.commerce.dto.ApiResponse;
+import com.shop.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
