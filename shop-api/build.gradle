@@ -1,0 +1,28 @@
+// 실행 가능한 애플리케이션
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}
+
+dependencies {
+    // 다른 모듈 의존성
+    implementation project(':shop-common')
+    implementation project(':shop-domain')
+    implementation project(':shop-core')
+
+    // Spring Boot 기본
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // JPA 추가 (EntityScan, EnableJpaRepositories 사용을 위해 필요!)
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.14'
+
+    // 테스트
+    testImplementation 'org.springframework.security:spring-security-test'
+}
