@@ -1,4 +1,4 @@
-package com.shop.rest.commerce.constant;
+package com.shop.common.constant;
 
 import lombok.Getter;
 
