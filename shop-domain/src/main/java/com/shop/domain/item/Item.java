@@ -1,7 +1,9 @@
-package com.shop.rest.commerce.entity;
+package com.shop.domain.item;
 
-import com.shop.rest.commerce.constant.ItemSellStatus;
-import com.shop.rest.commerce.exception.OutOfStockException;
+import com.shop.common.constant.ItemSellStatus;
+import com.shop.common.exception.CustomException;
+import com.shop.common.exception.ErrorCode;
+import com.shop.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,7 +41,7 @@ public class Item extends BaseEntity {
     public void removeStock(int stockNumber) {
         int restStock = this.stockNumber - stockNumber;
         if(restStock < 0) {
-            throw new OutOfStockException("상품 재고가 부족합니다. (현재 재고 수량: " + this.stockNumber  + ")");
+            throw new CustomException(ErrorCode.OUT_OF_STOCK, "상품 재고가 부족합니다. (현재 재고 수량: " + this.stockNumber  + ")");
         }
         this.stockNumber = restStock;
     }
