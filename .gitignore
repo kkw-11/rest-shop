@@ -36,4 +36,4 @@ out/
 ### VS Code ###
 .vscode/
 
-src/main/java/com/shop/rest/commerce/controller/TestController.java
+shop-api/src/main/java/com/shop/api/test/TestController.java

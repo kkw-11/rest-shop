@@ -1,0 +1,13 @@
+// Spring Boot 애플리케이션이 아니므로 bootJar 비활성화
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+}
