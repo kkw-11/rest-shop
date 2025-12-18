@@ -1,8 +1,6 @@
 package com.shop.core.security;
 
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.Random;
 
 @Slf4j
 @Component
@@ -27,7 +26,13 @@ public class JwtTokenProvider {
         this.refreshTokenValidityTime = refreshTokenValidityTime;
     }
 
-    // Access Token 생성
+
+    /**
+     * Access Token 생성
+     * @param memberId
+     * @param email
+     * @return
+     */
     public String createAccessToken(Long memberId, String email) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + accessTokenValidityTime);
@@ -41,7 +46,26 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // Refresh Token 생성
+    /**
+     * RefreshToken 생성
+     * @return
+     */
+    public String createRefreshToken() {
+        Date now = new Date();
+        Date validity = new Date(now.getTime() + refreshTokenValidityTime);
+
+        return Jwts.builder()
+                .setIssuedAt(now)
+                .setExpiration(validity)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /**
+     * 토큰에서 memberId 추출
+     * @param token
+     * @return
+     */
     public Long getMemberId(String token) {
         return Long.parseLong(
                 Jwts.parserBuilder()
@@ -51,15 +75,55 @@ public class JwtTokenProvider {
         );
     }
 
-    // 토큰 유효성 검증
+    /**
+     * 토큰에서 Email 추출
+     * @param token
+     * @return
+     */
+
+    public String getEmail(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody().get("email", String.class);
+    }
+
+
+    /**
+     * 토큰 유효성 검증
+     * @param token
+     * @return
+     */
     public boolean validateToken(String token) {
         Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
         try {
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        }catch (ExpiredJwtException e){
+            log.error("만료된 JWT Token 입니다.");
+            return false;
+        }catch (UnsupportedJwtException e){
+            log.error("지원하지 않는 JWT Token 입니다.");
+            return false;
+        }catch (MalformedJwtException e){
+            log.error("잘못된 JWT 토큰입니다.");
+            return false;
+        }catch (SignatureException e){
+            log.error("JWT 서명이 유효하지 않습니다.");
+            return false;
+        }
+        catch (IllegalArgumentException e) {
+            log.error("JWT 토큰이 비어있습니다.");
+            return false;
+        }
+        catch (JwtException e) {
             log.error("Invalid JWT Token: {}", e.getMessage());
             return false;
         }
     }
+
+    //
+
+
 
 }
