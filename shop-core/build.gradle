@@ -12,6 +12,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter'
+    
+    // Spring Web (Filter, HttpServletRequest 등을 위해 필요)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
 
     // Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
