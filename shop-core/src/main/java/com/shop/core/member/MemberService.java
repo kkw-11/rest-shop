@@ -62,12 +62,6 @@ public class MemberService implements UserDetailsService {
         return savedMember.getId();
     }
 
-    @Transactional
-    public Member saveMember(Member member) {
-        validateDuplicateMember(member);
-        return memberRepository.save(member);
-    }
-
     public Member findById(Long id) {
         return memberRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
