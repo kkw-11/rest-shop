@@ -28,3 +28,8 @@ itemImgLocation: "/Users/kim/myroot/shop/item/"
 
 # 리소스 URL 패턴 지정 경로, 프로젝트 외부에서 파일 찾는 경로
 uploadPath: "file:////Users/kim/myroot/shop/"
+
+jwt:
+  secret: your-secret-key-must-be-at-least-256-bits-long-for-HS256-algorithm
+  access-token-validity: 900000    # 15분 (밀리초)
+  refresh-token-validity: 1209600000 # 2주 (밀리초)
