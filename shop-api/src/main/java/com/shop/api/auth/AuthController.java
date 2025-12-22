@@ -34,12 +34,7 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Long>> register(@RequestBody RegisterRequest request) {
         // DTO → Command 변환
-        CreateMemberCommand command = CreateMemberCommand.builder()
-                .email(request.getEmail())
-                .password(request.getPassword())
-                .name(request.getName())
-                .address(request.getAddress())
-                .build();
+        CreateMemberCommand command = request.toCommand();
 
         // 회원가입
         Long memberId = memberService.register(command);
@@ -81,7 +76,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<TokenResponse>> refresh(@RequestBody TokenRefreshRequest request) {
         // Access Token 재발급
-        AuthService.TokenInfo tokenInfo = authService.refresh(request.getRefreshToken());
+        AuthService.TokenInfo tokenInfo = authService.refreshToken(request.getRefreshToken());
 
         // TokenResponse 생성
         TokenResponse response = TokenResponse.of(
