@@ -106,23 +106,6 @@ public class AuthController {
     }
 
     /**
-     * 내 정보 조회
-     */
-    @Operation(summary = "내 정보 조회", description = "현재 로그인한 사용자의 정보를 조회합니다.")
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<MemberResponse>> getMyInfo() {
-        // SecurityContext에서 인증된 사용자 ID 추출
-        Long memberId = getCurrentMemberId();
-
-        Member member = memberService.findById(memberId);
-        MemberResponse response = MemberResponse.from(member);
-
-        log.info("내 정보 조회 API 호출 완료: memberId={}", memberId);
-
-        return ResponseEntity.ok(ApiResponse.success(response));
-    }
-
-    /**
      * SecurityContext에서 현재 인증된 사용자 ID 추출
      */
     private Long getCurrentMemberId() {
