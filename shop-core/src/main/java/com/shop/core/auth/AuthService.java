@@ -51,7 +51,7 @@ public class AuthService {
         String refreshTokenValue = jwtTokenProvider.createRefreshToken();
 
         //기존 RefreshToken 있다면 삭제
-        refreshTokenRepository.findByMemberId(member.getId()).ifPresent(refreshTokenRepository::delete);
+        refreshTokenRepository.findByMember_Id(member.getId()).ifPresent(refreshTokenRepository::delete);
 
         RefreshToken refreshtoken = RefreshToken.builder()
                 .token(refreshTokenValue)
@@ -96,7 +96,7 @@ public class AuthService {
      */
     @Transactional
     public void logout(Long memberId) {
-        refreshTokenRepository.findByMemberId(memberId)
+        refreshTokenRepository.findByMember_Id(memberId)
                 .ifPresent(refreshToken -> {
                     refreshTokenRepository.delete(refreshToken);
                     log.info("로그아웃 완료: memberId={}", memberId);
