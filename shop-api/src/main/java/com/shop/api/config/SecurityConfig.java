@@ -1,5 +1,6 @@
-package com.shop.core.security;
+package com.shop.api.config;
 
+import com.shop.core.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
