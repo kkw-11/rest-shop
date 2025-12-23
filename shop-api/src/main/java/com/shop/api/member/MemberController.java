@@ -1,7 +1,8 @@
 package com.shop.api.member;
 
-import com.shop.api.auth.dto.MemberResponse;
+import com.shop.api.member.dto.MemberResponse;
 import com.shop.common.dto.ApiResponse;
+import com.shop.common.exception.CustomException;
 import com.shop.common.exception.ErrorCode;
 import com.shop.core.member.MemberService;
 import com.shop.domain.member.Member;
@@ -42,7 +43,7 @@ public class MemberController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if(authentication == null || !authentication.isAuthenticated()) {
-            throw new IllegalStateException(ErrorCode.UNAUTHORIZED.getMessage());
+            throw new CustomException(ErrorCode.UNAUTHORIZED);
         }
 
         return (Long)authentication.getPrincipal();
