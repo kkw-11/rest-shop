@@ -1,13 +1,10 @@
-package com.shop.api.auth.dto;
+package com.shop.api.member.dto;
 
 import com.shop.common.constant.Role;
 import com.shop.domain.member.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Builder
