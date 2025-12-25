@@ -34,6 +34,9 @@ class EventConcurrencyTest {
     private EventService eventService;
 
     @Autowired
+    private EventStockFacade eventStockFacade;
+
+    @Autowired
     private EventRepository eventRepository;
 
     @Autowired
@@ -161,7 +164,8 @@ class EventConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    eventService.decreaseStockWithRedisLock(testEvent.getId(), 1);
+                    // Facade 사용! ← 변경됨
+                    eventStockFacade.decreaseStockWithRedisLock(testEvent.getId(), 1);
                     successCount.incrementAndGet();
                 } catch (Exception e) {
                     failCount.incrementAndGet();
@@ -189,42 +193,6 @@ class EventConcurrencyTest {
         assertThat(successCount.get()).isEqualTo(100);
     }
 
-    @Test
-    @DisplayName("성능 비교: 동시성 제어 없음 vs 비관적 락 vs Redis 락")
-    void performance_comparison() throws InterruptedException {
-        int threadCount = 100;
-
-        // 1. 동시성 제어 없음
-        long startTime1 = System.currentTimeMillis();
-        runTest(threadCount, "none");
-        long duration1 = System.currentTimeMillis() - startTime1;
-
-        setUp();
-
-        // 2. 비관적 락
-        long startTime2 = System.currentTimeMillis();
-        runTest(threadCount, "pessimistic");
-        long duration2 = System.currentTimeMillis() - startTime2;
-
-        setUp();
-
-        // 3. Redis 분산 락
-        long startTime3 = System.currentTimeMillis();
-        runTest(threadCount, "redis");
-        long duration3 = System.currentTimeMillis() - startTime3;
-
-        System.out.println("\n===== 성능 비교 =====");
-        System.out.println("동시성 제어 없음: " + duration1 + "ms");
-        System.out.println("비관적 락: " + duration2 + "ms (기준 대비 " +
-            String.format("%.2f", (double)duration2/duration1) + "x)");
-        System.out.println("Redis 분산 락: " + duration3 + "ms (기준 대비 " +
-            String.format("%.2f", (double)duration3/duration1) + "x)");
-        System.out.println("\n비관적 락 vs Redis:");
-        System.out.println("  차이: " + (duration2 - duration3) + "ms");
-        System.out.println("  Redis가 " + String.format("%.1f%%", (1 - (double)duration3/duration2) * 100) + " 빠름");
-        System.out.println("====================\n");
-    }
-
     private void runTest(int threadCount, String lockType) throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -233,9 +201,12 @@ class EventConcurrencyTest {
             executorService.submit(() -> {
                 try {
                     switch (lockType) {
-                        case "pessimistic" -> eventService.decreaseStockWithPessimisticLock(testEvent.getId(), 1);
-                        case "redis" -> eventService.decreaseStockWithRedisLock(testEvent.getId(), 1);
-                        default -> eventService.decreaseStockWithoutLock(testEvent.getId(), 1);
+                        case "pessimistic" ->
+                                eventService.decreaseStockWithPessimisticLock(testEvent.getId(), 1);
+                        case "redis" ->
+                                eventStockFacade.decreaseStockWithRedisLock(testEvent.getId(), 1);  // ← 변경
+                        default ->
+                                eventService.decreaseStockWithoutLock(testEvent.getId(), 1);
                     }
                 } catch (Exception e) {
                     // ignore
