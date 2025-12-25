@@ -1,6 +1,5 @@
 package com.shop.domain.item;
 
-import com.shop.api.ShopApiApplication;
 import com.shop.common.constant.ItemSellStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = ShopApiApplication.class)
+@SpringBootTest
 @Transactional
 @ActiveProfiles("test")
 class ItemRepositoryTest {

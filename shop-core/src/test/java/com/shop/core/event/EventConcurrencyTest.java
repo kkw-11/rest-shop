@@ -149,42 +149,93 @@ class EventConcurrencyTest {
     }
 
     @Test
-    @DisplayName("성능 비교: 동시성 제어 없음 vs 비관적 락")
+    @DisplayName("Redis 분산 락 적용: 100명이 동시에 주문해도 재고가 정확하게 차감된다")
+    void redis_lock_solution() throws InterruptedException {
+        int threadCount = 100;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        for (int i = 0; i < threadCount; i++) {
+            executorService.submit(() -> {
+                try {
+                    eventService.decreaseStockWithRedisLock(testEvent.getId(), 1);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executorService.shutdown();
+
+        Event result = eventRepository.findById(testEvent.getId()).orElseThrow();
+
+        System.out.println("\n===== Redis 분산 락 적용 결과 =====");
+        System.out.println("성공 요청: " + successCount.get());
+        System.out.println("실패 요청: " + failCount.get());
+        System.out.println("예상 재고: 0");
+        System.out.println("실제 재고: " + result.getRemainingStock());
+        System.out.println("이벤트 상태: " + result.getStatus());
+        System.out.println("===================================\n");
+
+        assertThat(result.getRemainingStock()).isEqualTo(0);
+        assertThat(result.getStatus()).isEqualTo(EventStatus.SOLD_OUT);
+        assertThat(successCount.get()).isEqualTo(100);
+    }
+
+    @Test
+    @DisplayName("성능 비교: 동시성 제어 없음 vs 비관적 락 vs Redis 락")
     void performance_comparison() throws InterruptedException {
         int threadCount = 100;
 
         // 1. 동시성 제어 없음
         long startTime1 = System.currentTimeMillis();
-        runTest(threadCount, false);
+        runTest(threadCount, "none");
         long duration1 = System.currentTimeMillis() - startTime1;
 
-        // 데이터 초기화
         setUp();
 
         // 2. 비관적 락
         long startTime2 = System.currentTimeMillis();
-        runTest(threadCount, true);
+        runTest(threadCount, "pessimistic");
         long duration2 = System.currentTimeMillis() - startTime2;
+
+        setUp();
+
+        // 3. Redis 분산 락
+        long startTime3 = System.currentTimeMillis();
+        runTest(threadCount, "redis");
+        long duration3 = System.currentTimeMillis() - startTime3;
 
         System.out.println("\n===== 성능 비교 =====");
         System.out.println("동시성 제어 없음: " + duration1 + "ms");
-        System.out.println("비관적 락: " + duration2 + "ms");
-        System.out.println("차이: " + (duration2 - duration1) + "ms");
-        System.out.println("비율: " + String.format("%.2f", (double)duration2/duration1) + "x");
+        System.out.println("비관적 락: " + duration2 + "ms (기준 대비 " +
+            String.format("%.2f", (double)duration2/duration1) + "x)");
+        System.out.println("Redis 분산 락: " + duration3 + "ms (기준 대비 " +
+            String.format("%.2f", (double)duration3/duration1) + "x)");
+        System.out.println("\n비관적 락 vs Redis:");
+        System.out.println("  차이: " + (duration2 - duration3) + "ms");
+        System.out.println("  Redis가 " + String.format("%.1f%%", (1 - (double)duration3/duration2) * 100) + " 빠름");
         System.out.println("====================\n");
     }
 
-    private void runTest(int threadCount, boolean useLock) throws InterruptedException {
+    private void runTest(int threadCount, String lockType) throws InterruptedException {
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    if (useLock) {
-                        eventService.decreaseStockWithPessimisticLock(testEvent.getId(), 1);
-                    } else {
-                        eventService.decreaseStockWithoutLock(testEvent.getId(), 1);
+                    switch (lockType) {
+                        case "pessimistic" -> eventService.decreaseStockWithPessimisticLock(testEvent.getId(), 1);
+                        case "redis" -> eventService.decreaseStockWithRedisLock(testEvent.getId(), 1);
+                        default -> eventService.decreaseStockWithoutLock(testEvent.getId(), 1);
                     }
                 } catch (Exception e) {
                     // ignore
@@ -197,5 +248,4 @@ class EventConcurrencyTest {
         latch.await();
         executorService.shutdown();
     }
-
 }
