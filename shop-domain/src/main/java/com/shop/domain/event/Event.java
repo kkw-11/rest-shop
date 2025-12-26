@@ -1,6 +1,8 @@
 package com.shop.domain.event;
 
 import com.shop.common.constant.EventStatus;
+import com.shop.common.exception.CustomException;
+import com.shop.common.exception.ErrorCode;
 import com.shop.domain.common.BaseEntity;
 import com.shop.domain.item.Item;
 import jakarta.persistence.*;
@@ -44,6 +46,13 @@ public class Event extends BaseEntity {
     @Column(nullable = false)
     private Integer discountRate;
 
+    /**
+     * 이벤트 전용 재고
+     * - 선착순 제어용
+     * - Item 재고와 독립적
+     */
+    @Column(nullable = false)
+    private Integer remainingStock;
 
     @Column(nullable = false)
     private Integer maxParticipants;
@@ -63,7 +72,7 @@ public class Event extends BaseEntity {
             LocalDateTime startDate,
             LocalDateTime endDate,
             Integer discountRate,
-            Integer maxParticipants,
+            Integer remainingStock,
             Integer maxPurchasePerUser
     ) {
         Event event = new Event();
@@ -72,7 +81,8 @@ public class Event extends BaseEntity {
         event.startDate = startDate;
         event.endDate = endDate;
         event.discountRate = discountRate;
-        event.maxParticipants = maxParticipants;
+        event.remainingStock = remainingStock;
+        event.maxParticipants = remainingStock;  // 초기값은 재고와 동일
         event.maxPurchasePerUser = maxPurchasePerUser;
         event.status = EventStatus.SCHEDULED;
         return event;
@@ -107,8 +117,17 @@ public class Event extends BaseEntity {
     }
 
     /**
+     * 이벤트 주문 처리
+     * - Event 재고 차감
+     * - Item 재고는 차감 안 함
+     */
+    public void processOrder(int quantity) {
+        validateEventPeriodAndStatus();
+        decreaseStock(quantity);
+    }
+
+    /**
      * 이벤트 기간 및 상태 검증
-     * - 선착순 인원 체크는 Service에서!
      */
     public void validateEventPeriodAndStatus() {
         // 1. 상태 체크
@@ -124,6 +143,21 @@ public class Event extends BaseEntity {
 
         if (now.isAfter(this.endDate)) {
             throw new IllegalStateException("이벤트가 종료되었습니다.");
+        }
+    }
+
+    /**
+     * 재고 차감
+     */
+    private void decreaseStock(int quantity) {
+        if (this.remainingStock < quantity) {
+            throw new CustomException(ErrorCode.OUT_OF_STOCK);
+        }
+
+        this.remainingStock -= quantity;
+
+        if (this.remainingStock == 0) {
+            this.status = EventStatus.SOLD_OUT;
         }
     }
 }
