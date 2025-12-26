@@ -2,6 +2,7 @@ package com.shop.domain.order;
 
 import com.shop.common.constant.OrderStatus;
 import com.shop.domain.common.BaseEntity;
+import com.shop.domain.event.Event;
 import com.shop.domain.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,7 +15,6 @@ import java.util.List;
 @Entity
 @Table(name = "orders")
 @Getter
-@Setter
 public class Order extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,20 +35,32 @@ public class Order extends BaseEntity {
 
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
-        orderItem.setOrder(this);
+        orderItem.setOrder(this);//외래키 세팅
     }
 
     public static Order createOrder(Member member, List<OrderItem> orderItemList) {
         Order order = new Order();
 
         //연관관계 세팅
-        order.setMember(member);
+        order.member = member;
         for(OrderItem orderItem : orderItemList) {
             order.addOrderItem(orderItem);
         }
 
-        order.setOrderStatus(OrderStatus.ORDER);
-        order.setOrderDate(LocalDateTime.now());
+        order.orderStatus = OrderStatus.ORDER;
+        order.orderDate = LocalDateTime.now();
+        return order;
+    }
+
+    public static Order createEventOrder(Member member, Event event) {
+        Order order = new Order();
+        order.member = member;
+        order.orderStatus = OrderStatus.ORDER;
+        order.orderDate = LocalDateTime.now();
+
+        OrderItem orderItem = OrderItem.createOrderItem(event.getItem(), event, event.getMaxPurchasePerUser());
+        order.addOrderItem(orderItem);//연관관계 세팅, 외래키
+
         return order;
     }
 
