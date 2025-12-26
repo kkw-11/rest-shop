@@ -45,13 +45,15 @@ public class OrderItem extends BaseEntity {
      * @param quantity
      * @return
      */
-    public static OrderItem createOrderItem(Item item,Event event, int quantity) {
+    public static OrderItem createEventOrderItem(Item item, Event event, int quantity) {
         OrderItem orderItem = new OrderItem();
         orderItem.setItem(item);
         orderItem.setQuantity(quantity);
         orderItem.setOrderPrice(event.calculateDiscountPrice(item.getPrice()));
 
-        item.removeStock(quantity);
+        // Item 재고 차감 안 함!
+
+        // Event 재고는 Service에서 차감 (processOrder)
 
         return orderItem;
     }
