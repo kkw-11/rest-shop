@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "event")
@@ -34,29 +35,21 @@ public class Event extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime endDate;
 
+    @OneToMany(mappedBy = "event")
+    private List<EventParticipant> participants;
+
     /**
      * 할인율 (0-100)
      */
     @Column(nullable = false)
     private Integer discountRate;
 
-    /**
-     * 이벤트 전용 재고(선착순 수)
-     */
-    @Column(nullable = false)
-    private Integer eventStock;
 
-    /**
-     * 남은 이벤트 재고
-     */
     @Column(nullable = false)
-    private Integer remainingStock;
+    private Integer maxParticipants;
 
-    /**
-     * 1인당 최대 구매 수량
-     */
     @Column(nullable = false)
-    private Integer maxPurchasePerUser;
+    private Integer maxPurchasePerUser; //1인당 최대 구매 수량
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -70,7 +63,7 @@ public class Event extends BaseEntity {
             LocalDateTime startDate,
             LocalDateTime endDate,
             Integer discountRate,
-            Integer eventStock,
+            Integer maxParticipants,
             Integer maxPurchasePerUser
     ) {
         Event event = new Event();
@@ -79,8 +72,7 @@ public class Event extends BaseEntity {
         event.startDate = startDate;
         event.endDate = endDate;
         event.discountRate = discountRate;
-        event.eventStock = eventStock;
-        event.remainingStock = eventStock;
+        event.maxParticipants = maxParticipants;
         event.maxPurchasePerUser = maxPurchasePerUser;
         event.status = EventStatus.SCHEDULED;
         return event;
@@ -92,23 +84,7 @@ public class Event extends BaseEntity {
         LocalDateTime now = LocalDateTime.now();
         return status == EventStatus.ACTIVE
                 && now.isAfter(startDate)
-                && now.isBefore(endDate)
-                && remainingStock > 0;
-    }
-
-
-    public void decreaseStock(int quantity) {
-        if (remainingStock < quantity) {
-            throw new IllegalStateException(
-                    String.format("이벤트 재고 부족. 요청: %d, 남은 재고: %d",
-                            quantity, remainingStock)
-            );
-        }
-        remainingStock -= quantity;
-
-        if (remainingStock == 0) {
-            this.status = EventStatus.SOLD_OUT;
-        }
+                && now.isBefore(endDate);
     }
 
     public void activate() {
@@ -126,7 +102,28 @@ public class Event extends BaseEntity {
         return (int) (originalPrice * discountRate / 100.0);
     }
 
-    public int calculateFinalPrice(int originalPrice) {
+    public int calculateDiscountPrice(int originalPrice) {
         return originalPrice - calculateDiscountAmount(originalPrice);
+    }
+
+    /**
+     * 이벤트 기간 및 상태 검증
+     * - 선착순 인원 체크는 Service에서!
+     */
+    public void validateEventPeriodAndStatus() {
+        // 1. 상태 체크
+        if (this.status != EventStatus.ACTIVE) {
+            throw new IllegalStateException("진행 중인 이벤트가 아닙니다.");
+        }
+
+        // 2. 기간 체크
+        LocalDateTime now = LocalDateTime.now();
+        if (now.isBefore(this.startDate)) {
+            throw new IllegalStateException("이벤트가 아직 시작되지 않았습니다.");
+        }
+
+        if (now.isAfter(this.endDate)) {
+            throw new IllegalStateException("이벤트가 종료되었습니다.");
+        }
     }
 }
