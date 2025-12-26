@@ -15,16 +15,19 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class EventOrderController {
     private final EventOrderService eventOrderService;
-    private final EventOrderFacade  eventOrderFacade;
+    private final EventOrderFacade eventOrderFacade;
 
     /**
-     * 이벤트 상품 주문 비관적 락
+     * 이벤트 상품 주문 - 비관적 락
      */
     @PostMapping("/{eventId}/order/pessimistic")
-    public ResponseEntity<ApiResponse<EventOrderResponse>> orderWithPessimisticLock(@PathVariable Long eventId, @RequestParam("memberId") Long memberId) {
-
+    public ResponseEntity<ApiResponse<EventOrderResponse>> orderWithPessimisticLock(
+            @PathVariable Long eventId,
+            @RequestParam("memberId") Long memberId
+    ) {
         log.info("비관적 락 이벤트 주문 요청. eventId={}, memberId={}", eventId, memberId);
-        Long orderId = eventOrderFacade.createOrderWithRedisLock(eventId, memberId);
+
+        Long orderId = eventOrderService.createOrderWithPessimisticLock(eventId, memberId);
 
         EventOrderResponse response = new EventOrderResponse("주문 완료", orderId, eventId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -34,12 +37,15 @@ public class EventOrderController {
      * 이벤트 상품 주문 - Redis 분산 락
      */
     @PostMapping("/{eventId}/order/redis")
-    public ResponseEntity<ApiResponse<EventOrderResponse>> orderWithRedisLock(@PathVariable Long eventId, @RequestParam Long memberId) {
+    public ResponseEntity<ApiResponse<EventOrderResponse>> orderWithRedisLock(
+            @PathVariable Long eventId,
+            @RequestParam Long memberId
+    ) {
         log.info("Redis 분산 락 이벤트 주문 요청. eventId={}, memberId={}", eventId, memberId);
+
         Long orderId = eventOrderFacade.createOrderWithRedisLock(eventId, memberId);
 
         EventOrderResponse response = new EventOrderResponse("주문 완료", orderId, eventId, memberId);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
-
 }
