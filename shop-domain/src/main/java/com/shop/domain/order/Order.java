@@ -58,7 +58,7 @@ public class Order extends BaseEntity {
         order.orderStatus = OrderStatus.ORDER;
         order.orderDate = LocalDateTime.now();
 
-        OrderItem orderItem = OrderItem.createOrderItem(event.getItem(), event, event.getMaxPurchasePerUser());
+        OrderItem orderItem = OrderItem.createEventOrderItem(event.getItem(), event, event.getMaxPurchasePerUser());
         order.addOrderItem(orderItem);//연관관계 세팅, 외래키
 
         return order;
