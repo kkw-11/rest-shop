@@ -36,4 +36,17 @@ out/
 ### VS Code ###
 .vscode/
 
-shop-api/src/main/java/com/shop/api/test/TestController.java
+### Local Development ###
+# H2 Database 파일
+data/
+*.mv.db
+*.trace.db
+
+# 로컬 테스트용 파일
+**/test/TestController.java
+shop-api/src/main/java/com/shop/api/test/
+
+# 로컬 설정 파일
+**/application-local.yml
+**/data-local.sql
+**/LocalSecurityConfig.java
