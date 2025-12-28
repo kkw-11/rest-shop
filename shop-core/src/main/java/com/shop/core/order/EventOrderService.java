@@ -20,95 +20,97 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class EventOrderService {
-    private final EventRepository eventRepository;
-    private final MemberRepository memberRepository;
-    private final OrderRepository orderRepository;
-    private final EventParticipantRepository participantRepository;
 
-    /**
-     * 이벤트 주문 생성(비관적 락)
-     */
-    @Transactional
-    public Long createOrderWithPessimisticLock(Long eventId, Long memberId) {
-        long startTime = System.currentTimeMillis();
+  private final EventRepository eventRepository;
+  private final MemberRepository memberRepository;
+  private final OrderRepository orderRepository;
+  private final EventParticipantRepository participantRepository;
 
-        try {
-            // 1. 조회
-            Member member = memberRepository.findById(memberId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+  /**
+   * 이벤트 주문 생성(비관적 락)
+   */
+  @Transactional
+  public Long createOrderWithPessimisticLock(Long eventId, Long memberId) {
+    long startTime = System.currentTimeMillis();
 
-            Event event = eventRepository.findByIdForUpdate(eventId)
-                    .orElseThrow(() -> new IllegalArgumentException("이벤트를 찾을 수 없습니다."));
+    try {
+      // 1. 조회
+      Member member = memberRepository.findById(memberId)
+          .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-            // 2. 이벤트 검증 + 재고 차감
-            event.processOrder(event.getMaxPurchasePerUser());
+      Event event = eventRepository.findByIdForUpdate(eventId)
+          .orElseThrow(() -> new IllegalArgumentException("이벤트를 찾을 수 없습니다."));
 
-            // 3. 중복 주문 체크
-            validateDuplicateOrder(eventId, memberId);
+      // 2. 이벤트 검증 + 재고 차감
+      event.processOrder(event.getMaxPurchasePerUser());
 
-            // 4. 주문 생성 (Item 재고 차감 안 함!)
-            Order order = Order.createEventOrder(member, event);
-            orderRepository.save(order);
+      // 3. 중복 주문 체크
+      validateDuplicateOrder(eventId, memberId);
 
-            // 5. 참여자 기록
-            EventParticipant participant = EventParticipant.create(event, member, order);
-            participantRepository.save(participant);
+      // 4. 주문 생성 (Item 재고 차감 안 함!)
+      Order order = Order.createEventOrder(member, event);
+      orderRepository.save(order);
 
-            log.info("이벤트 주문 생성 완료. orderId={}, eventId={}, memberId={}", 
-                    order.getId(), eventId, member.getId());
+      // 5. 참여자 기록
+      EventParticipant participant = EventParticipant.create(event, member, order);
+      participantRepository.save(participant);
 
-            return order.getId();
-        } finally {
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("⏱️ [비관적 락] 트랜잭션 처리 시간: {}ms, eventId={}, memberId={}",
-                    duration, eventId, memberId);
-        }
+      log.info("이벤트 주문 생성 완료. orderId={}, eventId={}, memberId={}",
+          order.getId(), eventId, member.getId());
+
+      return order.getId();
+    } finally {
+      long duration = System.currentTimeMillis() - startTime;
+      log.info("⏱️ [비관적 락] 트랜잭션 처리 시간: {}ms, eventId={}, memberId={}",
+          duration, eventId, memberId);
     }
+  }
 
 
-    /**
-     * 이벤트 주문 생성 (Redis 분산락 적용)
-     * @param eventId
-     * @param memberId
-     * @return
-     */
-    @Transactional
-    public Long createOrder(Long eventId, Long memberId) {
-        long startTime = System.currentTimeMillis();
+  /**
+   * 이벤트 주문 생성 (Redis 분산락 적용)
+   *
+   * @param eventId
+   * @param memberId
+   * @return
+   */
+  @Transactional
+  public Long createOrder(Long eventId, Long memberId) {
+    long startTime = System.currentTimeMillis();
 
-        try {
-            // 1. 조회
-            Member member = memberRepository.findById(memberId).orElseThrow();
-            Event event = eventRepository.findById(eventId).orElseThrow();
+    try {
+      // 1. 조회
+      Member member = memberRepository.findById(memberId).orElseThrow();
+      Event event = eventRepository.findById(eventId).orElseThrow();
 
-            // 2. 이벤트 검증 + 재고 차감
-            event.processOrder(event.getMaxPurchasePerUser());
+      // 2. 이벤트 검증 + 재고 차감
+      event.processOrder(event.getMaxPurchasePerUser());
 
-            // 3. 중복 체크
-            validateDuplicateOrder(eventId, memberId);
+      // 3. 중복 체크
+      validateDuplicateOrder(eventId, memberId);
 
-            // 4. 주문 생성 (Item 재고 차감 안 함!)
-            Order order = Order.createEventOrder(member, event);
-            orderRepository.save(order);
+      // 4. 주문 생성 (Item 재고 차감 안 함!)
+      Order order = Order.createEventOrder(member, event);
+      orderRepository.save(order);
 
-            // 5. 참여자 기록
-            EventParticipant participant = EventParticipant.create(event, member, order);
-            participantRepository.save(participant);
+      // 5. 참여자 기록
+      EventParticipant participant = EventParticipant.create(event, member, order);
+      participantRepository.save(participant);
 
-            return order.getId();
+      return order.getId();
 
-        } finally {
-            long duration = System.currentTimeMillis() - startTime;
-            log.info("⏱️ [Redis 락] 트랜잭션 시간: {}ms", duration);
-        }
+    } finally {
+      long duration = System.currentTimeMillis() - startTime;
+      log.info("⏱️ [Redis 락] 트랜잭션 시간: {}ms", duration);
     }
+  }
 
-    /**
-     * 중복주문 검증
-     */
-    private void validateDuplicateOrder(Long eventId, Long memberId) {
-        if(participantRepository.existsByEventIdAndMemberId(eventId, memberId)){
-            throw new IllegalStateException("이미 주문한 이벤트입니다.");
-        }
+  /**
+   * 중복주문 검증
+   */
+  private void validateDuplicateOrder(Long eventId, Long memberId) {
+    if (participantRepository.existsByEventIdAndMemberId(eventId, memberId)) {
+      throw new CustomException(ErrorCode.DUPLICATE_PARTICIPATION_EVENT);
     }
+  }
 }
