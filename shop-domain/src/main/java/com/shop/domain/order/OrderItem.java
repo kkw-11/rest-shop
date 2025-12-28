@@ -1,6 +1,7 @@
 package com.shop.domain.order;
 
 import com.shop.domain.common.BaseEntity;
+import com.shop.domain.event.Event;
 import com.shop.domain.item.Item;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -35,6 +36,25 @@ public class OrderItem extends BaseEntity {
         orderItem.setOrderPrice(item.getPrice());
 
         item.removeStock(quantity);
+        return orderItem;
+    }
+
+    /**
+     * 이벤트 주문 상품 생성
+     * @param event
+     * @param quantity
+     * @return
+     */
+    public static OrderItem createEventOrderItem(Item item, Event event, int quantity) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.setItem(item);
+        orderItem.setQuantity(quantity);
+        orderItem.setOrderPrice(event.calculateDiscountPrice(item.getPrice()));
+
+        // Item 재고 차감 안 함!
+
+        // Event 재고는 Service에서 차감 (processOrder)
+
         return orderItem;
     }
 

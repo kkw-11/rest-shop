@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: shop
+  profiles:
+    active: local  # 기본 프로필
   jpa:
     properties:
       hibernate:
